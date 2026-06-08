@@ -1,0 +1,80 @@
+# ==========================================
+# AEGIS OS - SYSTEM PACKAGES DEFINITION
+# ==========================================
+
+# Core Base System & Hardware
+base
+base-devel
+linux-hardened
+linux-hardened-headers
+dkms
+intel-ucode
+amd-ucode
+grub
+efibootmgr
+cryptsetup
+btrfs-progs
+xfsprogs
+sudo
+networkmanager
+git
+neovim
+nano
+wget
+curl
+pciutils
+usbutils
+
+# Sound Architecture
+pipewire
+pipewire-audio
+pipewire-pulse
+pipewire-alsa
+wireplumber
+
+# Wayland Display Server & Compositor (Keylogger Mitigation)
+sway
+swaybg
+swayidle
+swaylock
+waybar
+alacritty
+rofi-wayland
+mako
+polkit-gnome
+grim
+slurp
+wl-clipboard
+xdg-desktop-portal-wlr
+xdg-desktop-portal-gtk
+
+# Privacy & Security Toolkit
+tor
+macchanger
+apparmor
+firejail
+dnscrypt-proxy
+nftables
+iptables-nft
+dnssec-anchors
+
+# Android App Runtime (Waydroid & LXC Container)
+waydroid
+lxc
+dnsmasq
+squashfs-tools
+
+# Windows App Compatibility (Wine & Sandboxing)
+wine
+wine-mono
+wine-gecko
+flatpak
+cabextract
+unzip
+
+# Graphic Utilities & Themes
+mesa-utils
+adwaita-icon-theme
+ttf-dejavu
+ttf-liberation
+noto-fonts

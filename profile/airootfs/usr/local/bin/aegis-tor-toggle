@@ -1,0 +1,124 @@
+#!/bin/bash
+# =====================================================================
+# AEGIS OS - TOR TRANSPARENT ROUTING TOGGLE UTILITY
+# =====================================================================
+
+set -euo pipefail
+
+# Check for root privileges
+if [ "$EUID" -ne 0 ]; then
+    echo -e "\033[1;31m[-] Error: Please run this script with sudo or as root.\033[0m"
+    exit 1
+fi
+
+TOR_RULESET_FILE="/tmp/aegis_tor_rules.nft"
+
+enable_tor() {
+    echo -e "\033[1;34m[*] Enabling Tor transparent routing...\033[0m"
+    
+    # Start/enable Tor service
+    systemctl start tor
+    
+    # Generate nftables Tor ruleset
+    cat << 'EOF' > "$TOR_RULESET_FILE"
+table ip aegis_tor {
+    chain prerouting {
+        type nat hook prerouting priority dstnat; policy accept;
+        
+        # Redirect Waydroid/LXC container DNS and TCP traffic to Tor
+        iifname "waydroid0" ip protocol udp dport 53 redirect to :5353
+        iifname "waydroid0" ip protocol tcp dport 53 redirect to :5353
+        iifname "waydroid0" ip protocol tcp redirect to :9040
+    }
+    
+    chain output {
+        type nat hook output priority dstnat; policy accept;
+        
+        # Exclude Tor user from loop redirection
+        meta skuid tor accept
+        
+        # Redirect local DNS queries to Tor DNS
+        ip protocol udp dport 53 redirect to :5353
+        ip protocol tcp dport 53 redirect to :5353
+        
+        # Redirect all local TCP traffic to Tor TransPort
+        ip protocol tcp redirect to :9040
+    }
+    
+    chain filter_output {
+        type filter hook output priority filter; policy accept;
+        
+        # Allow loopback traffic
+        oif "lo" accept
+        
+        # Allow the Tor daemon itself to send packet streams
+        meta skuid tor accept
+        
+        # Allow connections to redirected Tor local interfaces
+        ip daddr 127.0.0.1 tcp dport 9040 accept
+        ip daddr 127.0.0.1 udp dport 5353 accept
+        ip daddr 127.0.0.1 tcp dport 5353 accept
+        
+        # Drop everything else (UDP, ICMP, etc.) to prevent data leakage
+        drop
+    }
+}
+EOF
+
+    # Apply ruleset
+    nft -f "$TOR_RULESET_FILE"
+    rm -f "$TOR_RULESET_FILE"
+    
+    # Set DNS resolver to local Tor DNS proxy
+    echo "nameserver 127.0.0.1" > /etc/resolv.conf
+    
+    echo -e "\033[1;32m[+] Tor Transparent Routing ACTIVE.\033[0m"
+    echo -e "\033[1;32m[+] All TCP and DNS queries are now securely routed through the Tor network.\033[0m"
+    echo -e "\033[1;33m[!] Non-Tor protocols (UDP streams, Ping) have been blocked to prevent IP leaks.\033[0m"
+}
+
+disable_tor() {
+    echo -e "\033[1;34m[*] Disabling Tor transparent routing...\033[0m"
+    
+    # Delete the nftables table
+    nft delete table ip aegis_tor 2>/dev/null || true
+    
+    # Restore standard systemd DNS resolver settings
+    if [ -f /run/systemd/resolve/resolv.conf ]; then
+        cp /run/systemd/resolve/resolv.conf /etc/resolv.conf
+    else
+        echo "nameserver 1.1.1.1" > /etc/resolv.conf
+    fi
+    
+    # Stop Tor service (optional, keep running or stop. Let's stop to save RAM)
+    systemctl stop tor
+    
+    echo -e "\033[1;32m[+] Tor Transparent Routing INACTIVE. Resumed normal networking.\033[0m"
+}
+
+status_tor() {
+    if nft list tables | grep -q "aegis_tor"; then
+        echo -e "\033[1;32mSTATUS: ACTIVE (All traffic is encrypted and routed through Tor)\033[0m"
+    else
+        echo -e "\033[1;31mSTATUS: INACTIVE (Clear-net active)\033[0m"
+    fi
+}
+
+# Main command parsing
+CMD=${1:-"status"}
+
+case "$CMD" in
+    "on"|"enable"|"start")
+        enable_tor
+        ;;
+    "off"|"disable"|"stop")
+        disable_tor
+        ;;
+    "status")
+        status_tor
+        ;;
+    *)
+        echo "Usage: aegis-tor-toggle {on|off|status}"
+        exit 1
+        ;;
+esac

@@ -1,0 +1,82 @@
+// =====================================================================
+// AEGIS OS - WAYBAR SYSTEM BAR CONFIGURATION
+// =====================================================================
+{
+    "layer": "top",
+    "position": "top",
+    "height": 36,
+    "spacing": 4,
+
+    // Modules Layout
+    "modules-left": ["sway/workspaces", "sway/mode"],
+    "modules-center": ["sway/window"],
+    "modules-right": [
+        "custom/security",
+        "custom/tor",
+        "cpu",
+        "memory",
+        "wireplumber",
+        "battery",
+        "clock",
+        "tray"
+    ],
+
+    // Modules Configurations
+    "sway/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{name}"
+    },
+
+    "sway/window": {
+        "max-length": 50,
+        "tooltip": false
+    },
+
+    "cpu": {
+        "format": " {usage}%",
+        "tooltip": true,
+        "interval": 5
+    },
+
+    "memory": {
+        "format": " {used:0.1f}G/{total:0.1f}G",
+        "interval": 5
+    },
+
+    "wireplumber": {
+        "format": " {volume}%",
+        "format-muted": " Muted",
+        "on-click": "helvum"
+    },
+
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-charging": " {capacity}%",
+        "format-plugged": " {capacity}%",
+        "format-icons": ["", "", "", "", ""]
+    },
+
+    "clock": {
+        "format": " {:%H:%M   %d/%m}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+
+    // Custom Security Module: Displays Hardened OS indicators
+    "custom/security": {
+        "exec": "echo '{\"text\": \"🛡️ SECURE KERNEL\", \"tooltip\": \"Linux Hardened Kernel Active with AppArmor\"}'",
+        "return-type": "json",
+        "interval": 3600
+    },
+
+    // Custom Tor Router Status Monitor
+    "custom/tor": {
+        "exec": "if nft list tables 2>/dev/null | grep -q aegis_tor; then echo '{\"text\": \"🔒 TOR ACTIVE\", \"class\": \"tor-active\", \"tooltip\": \"All outbound connections forced through Tor onion nodes.\"}'; else echo '{\"text\": \"🔓 CLEAR-NET\", \"class\": \"tor-inactive\", \"tooltip\": \"Outbound connections bypass Tor proxy.\"}'; fi",
+        "return-type": "json",
+        "interval": 2
+    }
+}

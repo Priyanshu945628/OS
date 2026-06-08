@@ -1,0 +1,38 @@
+name: Build AegisOS ISO
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: # Allows manual trigger from the Actions tab
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Free Disk Space
+        run: |
+          # Archiso builds require substantial disk space (~15GB). We clean default tooling to prevent Out-Of-Space errors.
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Build AegisOS Builder Container
+        run: |
+          docker build -t aegis-builder .
+
+      - name: Compile ISO
+        run: |
+          # We execute mkarchiso inside the privileged container.
+          # GitHub Actions Ubuntu runners support running privileged Docker containers.
+          docker run --privileged --rm -v ${{ github.workspace }}:/build aegis-builder ./build.sh
+
+      - name: Upload Bootable ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AegisOS-ISO
+          path: out/*.iso
+          retention-days: 5

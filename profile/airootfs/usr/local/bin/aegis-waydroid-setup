@@ -1,0 +1,55 @@
+#!/bin/bash
+# =====================================================================
+# AEGIS OS - WAYDROID (ANDROID APPS) SYSTEM SETUP SCRIPT
+# =====================================================================
+
+set -euo pipefail
+
+# Visual outputs
+echo -e "\033[1;36m====================================================\033[0m"
+echo -e "\033[1;36m              AEGIS OS - WAYDROID SETUP             \033[0m"
+echo -e "\033[1;36m====================================================\033[0m"
+
+# Root verification
+if [ "$EUID" -ne 0 ]; then
+    echo -e "\033[1;31m[-] Error: Please run this script with sudo or as root.\033[0m"
+    exit 1
+fi
+
+# Pre-req verification
+if ! command -v waydroid &> /dev/null; then
+    echo -e "\033[1;31m[-] Error: 'waydroid' is not installed. Pacman database error?\033[0m"
+    exit 1
+fi
+
+echo -e "\033[1;34m[*] Waydroid container system found.\033[0m"
+echo -e "\033[1;34m[*] Please choose Android Image profile:\033[0m"
+echo -e "    1) Vanilla (LineageOS, 100% open-source, maximum privacy, no Google services)"
+echo -e "    2) GAPPS (LineageOS + microG/Google Play Services, better app compatibility)"
+read -p "Select option [1-2] (default 1): " choice
+
+SYSTEM_TYPE="vanilla"
+if [ "$choice" = "2" ]; then
+    SYSTEM_TYPE="gapps"
+fi
+
+echo -e "\033[1;34m[*] Initializing Waydroid LXC environment ($SYSTEM_TYPE)... This will download ~800MB.\033[0m"
+
+# Start waydroid container systemd service
+systemctl stop waydroid-container 2>/dev/null || true
+rm -rf /var/lib/waydroid /etc/waydroid /var/lib/lxc/waydroid
+
+# Initialize
+if [ "$SYSTEM_TYPE" = "gapps" ]; then
+    waydroid init -s GAPPS
+else
+    waydroid init
+fi
+
+# Enable container service on boot
+echo -e "\033[1;34m[*] Enabling and starting Waydroid service daemon...\033[0m"
+systemctl enable --now waydroid-container
+
+echo -e "\033[1;32m[+] Waydroid initialized successfully!\033[0m"
+echo -e "\033[1;32m[+] You can now launch Android apps from your app launcher or by running 'waydroid show-full-ui'.\033[0m"
+echo -e "\033[1;36m====================================================\033[0m"

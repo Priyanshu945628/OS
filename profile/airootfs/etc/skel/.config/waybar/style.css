@@ -1,0 +1,140 @@
+/* =====================================================================
+/* AEGIS OS - WAYBAR STYLESHEET (GLASSMORPHISM & CYBERPUNK THEME)
+/* ===================================================================== */
+
+/* Global Settings */
+* {
+    font-family: "Inter", "Outfit", "Ubuntu", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+}
+
+/* Glassmorphic Bar Foundation */
+window#waybar {
+    background-color: rgba(6, 10, 23, 0.82);
+    border-bottom: 2px solid rgba(0, 240, 255, 0.25);
+    color: #e2e8f0;
+    transition-property: background-color;
+    transition-duration: .5s;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Individual Module Spacing */
+#workspaces,
+#mode,
+#window,
+#cpu,
+#memory,
+#wireplumber,
+#battery,
+#clock,
+#custom-security,
+#custom-tor,
+#tray {
+    padding: 0 15px;
+    margin: 4px 2px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Active Workspaces */
+#workspaces button {
+    padding: 0 8px;
+    color: #8a9cae;
+    background: transparent;
+    border: none;
+}
+
+#workspaces button.focused {
+    color: #00f0ff;
+    border-bottom: 2px solid #00f0ff;
+    text-shadow: 0 0 6px rgba(0, 240, 255, 0.6);
+}
+
+#workspaces button.urgent {
+    color: #ff0055;
+    border-bottom: 2px solid #ff0055;
+}
+
+#workspaces button:hover {
+    background: rgba(0, 240, 255, 0.1);
+    color: #00f0ff;
+}
+
+/* Window Title center display */
+#window {
+    background-color: transparent;
+    border: none;
+    font-style: italic;
+    color: #8ecae6;
+}
+
+/* System Stats Module Styling */
+#cpu {
+    color: #38bdf8;
+}
+
+#memory {
+    color: #a78bfa;
+}
+
+#wireplumber {
+    color: #fb7185;
+}
+
+#battery {
+    color: #34d399;
+}
+
+#battery.warning {
+    color: #fbbf24;
+}
+
+#battery.critical {
+    color: #f87171;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+/* Security Hardened tag */
+#custom-security {
+    color: #34d399;
+    border-color: rgba(52, 211, 153, 0.3);
+    text-shadow: 0 0 4px rgba(52, 211, 153, 0.4);
+}
+
+/* Tor Proxy Toggles (Dynamic Colors) */
+#custom-tor.tor-active {
+    color: #00f0ff;
+    background-color: rgba(0, 240, 255, 0.1);
+    border-color: rgba(0, 240, 255, 0.4);
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+    box-shadow: inset 0 0 4px rgba(0, 240, 255, 0.2);
+}
+
+#custom-tor.tor-inactive {
+    color: #f87171;
+    background-color: rgba(248, 113, 113, 0.08);
+    border-color: rgba(248, 113, 113, 0.3);
+    text-shadow: 0 0 4px rgba(248, 113, 113, 0.4);
+}
+
+/* Clock styling */
+#clock {
+    color: #e2e8f0;
+}
+
+/* Simple CSS Animation for alerts */
+@keyframes blink {
+    to {
+        background-color: rgba(248, 113, 113, 0.35);
+        color: #ffffff;
+    }
+}
