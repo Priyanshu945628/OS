@@ -1,0 +1,12 @@
+[Unit]
+Description=AegisOS Live User Password Initialization
+Before=getty@tty1.service
+After=systemd-sysusers.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/passwd -d arch
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
