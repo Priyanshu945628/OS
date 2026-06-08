@@ -1,0 +1,8 @@
+# Enforce LF line endings for Unix files to prevent compilation failures on Linux runners
+*.sh text eol=lf
+aegis-* text eol=lf
+*.conf text eol=lf
+packages.x86_64 text eol=lf
+config text eol=lf
+style.css text eol=lf
+Dockerfile text eol=lf
