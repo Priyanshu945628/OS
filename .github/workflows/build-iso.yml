@@ -24,20 +24,17 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: out/
 
-      - name: Upload to Pixeldrain (Supports files > 2GB)
+      - name: Upload to transfer.whalebone.io (Supports files up to 10GB)
         run: |
           echo "Locating downloaded ISO file..."
           ISO_FILE=$(ls out/*.iso | head -n 1)
-          echo "Uploading $ISO_FILE to Pixeldrain (this will take 1-2 minutes)..."
+          echo "Uploading $ISO_FILE to transfer.whalebone.io (this will take 1-2 minutes)..."
           
-          # Upload and capture JSON response
-          RESPONSE=$(curl -s -T "$ISO_FILE" https://pixeldrain.com/api/file/)
+          # Upload and capture response
+          RESPONSE=$(curl -s --upload-file "$ISO_FILE" https://transfer.whalebone.io/aegis-os-latest.iso)
           echo "Response: $RESPONSE"
-          
-          # Extract file ID using python
-          FILE_ID=$(echo "$RESPONSE" | python3 -c "import sys, json; print(json.load(sys.stdin)['id'])")
           
           echo "=========================================================="
           echo "AEGISOS DIRECT DOWNLOAD LINK:"
-          echo "https://pixeldrain.com/api/file/$FILE_ID"
+          echo "$RESPONSE"
           echo "=========================================================="
