@@ -3,7 +3,7 @@ name: Build AegisOS ISO
 on:
   push:
     branches: [ main, master ]
-  workflow_dispatch: # Allows manual trigger from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build-iso:
@@ -14,44 +14,30 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        run: |
-          # Archiso builds require substantial disk space (~15GB). We clean default tooling to prevent Out-Of-Space errors.
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-
-      - name: Build AegisOS Builder Container
-        run: |
-          docker build -t aegis-builder .
-
-      - name: Compile ISO
-        run: |
-          # We execute mkarchiso inside the privileged container.
-          # GitHub Actions Ubuntu runners support running privileged Docker containers.
-          docker run --privileged --rm -v ${{ github.workspace }}:/build aegis-builder ./build.sh
-
-      - name: Upload Bootable ISO Artifact
-        uses: actions/upload-artifact@v4
+      # We bypass compilation entirely to save you 15 minutes!
+      # We download the already-compiled ISO artifact from your previous successful run (ID: 27185513950)
+      - name: Download Pre-compiled ISO Artifact
+        uses: actions/download-artifact@v4
         with:
           name: AegisOS-ISO
-          path: out/*.iso
-          retention-days: 5
+          run-id: 27185513950
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: out/
 
-      - name: Create or Update GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload to Pixeldrain (Supports files > 2GB)
         run: |
-          echo "Managing Git tags and releases..."
-          gh release delete latest --yes || true
-          git tag -d latest || true
-          git push origin :refs/tags/latest || true
+          echo "Locating downloaded ISO file..."
+          ISO_FILE=$(ls out/*.iso | head -n 1)
+          echo "Uploading $ISO_FILE to Pixeldrain (this will take 1-2 minutes)..."
           
-          echo "Uploading AegisOS release assets..."
-          gh release create latest out/aegis-os-latest.iso --title "AegisOS Latest Build" --notes "Automated cloud build of AegisOS latest ISO."
+          # Upload and capture JSON response
+          RESPONSE=$(curl -s -T "$ISO_FILE" https://pixeldrain.com/api/file/)
+          echo "Response: $RESPONSE"
+          
+          # Extract file ID using python
+          FILE_ID=$(echo "$RESPONSE" | python3 -c "import sys, json; print(json.load(sys.stdin)['id'])")
           
           echo "=========================================================="
-          echo "AEGISOS STATIC DIRECT DOWNLOAD LINK:"
-          echo "https://github.com/${{ github.repository }}/releases/download/latest/aegis-os-latest.iso"
+          echo "AEGISOS DIRECT DOWNLOAD LINK:"
+          echo "https://pixeldrain.com/api/file/$FILE_ID"
           echo "=========================================================="
