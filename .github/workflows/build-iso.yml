@@ -24,17 +24,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: out/
 
-      - name: Upload to transfer.whalebone.io (Supports files up to 10GB)
+      - name: Upload to Gofile (Supports files > 2GB)
         run: |
-          echo "Locating downloaded ISO file..."
-          ISO_FILE=$(ls out/*.iso | head -n 1)
-          echo "Uploading $ISO_FILE to transfer.whalebone.io (this will take 1-2 minutes)..."
-          
-          # Upload and capture response
-          RESPONSE=$(curl -s --upload-file "$ISO_FILE" https://transfer.whalebone.io/aegis-os-latest.iso)
-          echo "Response: $RESPONSE"
-          
-          echo "=========================================================="
-          echo "AEGISOS DIRECT DOWNLOAD LINK:"
-          echo "$RESPONSE"
-          echo "=========================================================="
+          python upload_gofile.py
