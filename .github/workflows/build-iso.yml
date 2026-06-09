@@ -36,3 +36,13 @@ jobs:
           name: AegisOS-ISO
           path: out/*.iso
           retention-days: 5
+
+      - name: Upload to transfer.sh for fast cloud download
+        run: |
+          echo "Uploading ISO to transfer.sh..."
+          ISO_FILE=$(ls out/*.iso | head -n 1)
+          DOWNLOAD_URL=$(curl --upload-file "$ISO_FILE" https://transfer.sh/aegis-os.iso)
+          echo "=========================================================="
+          echo "AEGISOS CLOUD DOWNLOAD LINK:"
+          echo "$DOWNLOAD_URL"
+          echo "=========================================================="
