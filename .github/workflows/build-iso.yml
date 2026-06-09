@@ -24,6 +24,25 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: out/
 
-      - name: Upload to Gofile (Supports files > 2GB)
+      - name: Split and Upload to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python upload_gofile.py
+          echo "Locating downloaded ISO file..."
+          ISO_FILE=$(ls out/*.iso | head -n 1)
+          echo "Splitting $ISO_FILE into 1.2GB parts to bypass the GitHub 2GB release size limit..."
+          split -b 1200M "$ISO_FILE" out/aegis-os-latest.iso.part
+          
+          echo "Managing Git tags and releases..."
+          gh release delete latest --yes || true
+          git tag -d latest || true
+          git push origin :refs/tags/latest || true
+          
+          echo "Uploading AegisOS release assets..."
+          gh release create latest out/aegis-os-latest.iso.part* --title "AegisOS Latest Build" --notes "Automated cloud build of AegisOS."
+          
+          echo "=========================================================="
+          echo "AEGISOS DIRECT DOWNLOAD LINKS FOR COLAB:"
+          echo "https://github.com/${{ github.repository }}/releases/download/latest/aegis-os-latest.iso.partaa"
+          echo "https://github.com/${{ github.repository }}/releases/download/latest/aegis-os-latest.iso.partab"
+          echo "=========================================================="
