@@ -43,9 +43,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Preparing ISO file..."
-          mv out/*.iso out/aegis-os-latest.iso
-          
           echo "Managing Git tags and releases..."
           gh release delete latest --yes || true
           git tag -d latest || true

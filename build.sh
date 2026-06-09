@@ -87,7 +87,13 @@ echo -e ""
 # Execute the compiler. We enforce the merged profile logic.
 mkarchiso -v -w "$WORK_DIR" -o "$OUT_DIR" "$TEMP_PROFILE"
 
+# Rename the compiled ISO file inside the root container and grant host-level write access
+echo -e "\033[1;34m[*] Renaming ISO and setting file permissions...\033[0m"
+ISO_FILE=$(ls -t "$OUT_DIR"/*.iso | head -n 1)
+mv "$ISO_FILE" "$OUT_DIR/aegis-os-latest.iso"
+chmod -R a+rw "$OUT_DIR"
+
 echo -e ""
 echo -e "\033[1;32m[+] Success! AegisOS ISO compilation finished.\033[0m"
-echo -e "\033[1;36m[+] ISO location: $OUT_DIR/$(ls -t $OUT_DIR | head -n 1)\033[0m"
+echo -e "\033[1;36m[+] ISO location: $OUT_DIR/aegis-os-latest.iso\033[0m"
 echo -e "\033[1;36m====================================================\033[0m"
