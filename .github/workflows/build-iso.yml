@@ -8,6 +8,8 @@ on:
 jobs:
   build-iso:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -37,12 +39,22 @@ jobs:
           path: out/*.iso
           retention-days: 5
 
-      - name: Upload to transfer.sh for fast cloud download
+      - name: Create or Update GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Uploading ISO to transfer.sh..."
-          ISO_FILE=$(ls out/*.iso | head -n 1)
-          DOWNLOAD_URL=$(curl --upload-file "$ISO_FILE" https://transfer.sh/aegis-os.iso)
+          echo "Preparing ISO file..."
+          mv out/*.iso out/aegis-os-latest.iso
+          
+          echo "Managing Git tags and releases..."
+          gh release delete latest --yes || true
+          git tag -d latest || true
+          git push origin :refs/tags/latest || true
+          
+          echo "Uploading AegisOS release assets..."
+          gh release create latest out/aegis-os-latest.iso --title "AegisOS Latest Build" --notes "Automated cloud build of AegisOS latest ISO."
+          
           echo "=========================================================="
-          echo "AEGISOS CLOUD DOWNLOAD LINK:"
-          echo "$DOWNLOAD_URL"
+          echo "AEGISOS STATIC DIRECT DOWNLOAD LINK:"
+          echo "https://github.com/${{ github.repository }}/releases/download/latest/aegis-os-latest.iso"
           echo "=========================================================="
